@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LinkedIn Job Apply Agent</title>
+  <style>
+    body {
+      width: 350px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    button {
+      background-color: #0a66c2;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #004182;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .settings {
+      margin-top: 10px;
+    }
+    .status {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      background-color: #f3f3f3;
+    }
+    .filter-group {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+    }
+    .filter-group h4 {
+      margin: 0 0 10px 0;
+    }
+    input[type="text"], select {
+      width: 100%;
+      padding: 5px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    label {
+      display: block;
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>LinkedIn Job Apply Agent</h2>
+    
+    <div class="filter-group">
+      <h4>Job Preferences</h4>
+      <label>
+        Job Title:
+        <input type="text" id="jobTitle" placeholder="Software Engineer">
+      </label>
+      <label>
+        Job Type:
+        <select id="jobType">
+          <option value="full-time">Full-time</option>
+          <option value="contract">Contract</option>
+          <option value="part-time">Part-time</option>
+        </select>
+      </label>
+      <label>
+        Location:
+        <input type="text" id="location" placeholder="San Francisco Bay Area">
+      </label>
+      <p class="note">Note: Searches will target Mid-Senior level positions with Easy Apply enabled.</p>
+    </div>
+    
+    <button id="startApplying">Start Auto-Applying</button>
+    <button id="stopApplying" disabled>Stop</button>
+    
+    <div class="status">
+      Status: <span id="status">Ready</span><br>
+      Jobs Applied: <span id="jobCount">0</span>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
