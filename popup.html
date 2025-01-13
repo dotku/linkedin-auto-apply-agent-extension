@@ -72,9 +72,10 @@
       <label>
         Job Type:
         <select id="jobType">
+          <option value="none">All Types</option>
           <option value="full-time">Full-time</option>
-          <option value="contract">Contract</option>
           <option value="part-time">Part-time</option>
+          <option value="contract">Contract</option>
         </select>
       </label>
       <label>
@@ -92,6 +93,6 @@
       Jobs Applied: <span id="jobCount">0</span>
     </div>
   </div>
-  <script src="popup.js"></script>
+  <script type="module" src="popup.js"></script>
 </body>
 </html>

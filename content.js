@@ -1,5 +1,10 @@
 // Use IIFE to avoid global scope pollution
-(function () {
+(async () => {
+  const configModulePath = chrome.runtime.getURL("config.js");
+  const { getConfig } = await import(configModulePath);
+
+  const config = getConfig();
+  console.log("config", config);
   // Check if script is already running
   if (window.linkedInAutoApplyAgent) {
     console.log("LinkedIn Auto Apply Agent already initialized");
@@ -11,9 +16,9 @@
     isRunning: false,
     jobsApplied: 0,
     settings: {
-      jobTitle: "",
-      jobType: "full-time",
-      location: "",
+      jobTitle: config.jobTitle,
+      jobType: config.jobType,
+      location: config.location,
       easyApplyOnly: true,
     },
   };
@@ -33,7 +38,7 @@
       if (request.settings) {
         window.linkedInAutoApplyAgent.settings = {
           jobTitle: request.settings.jobTitle || "Software Engineer",
-          jobType: request.settings.jobType || "full-time",
+          jobType: request.settings.jobType || "none",
           location: request.settings.location || "San Francisco Bay Area",
           easyApplyOnly: true,
         };
@@ -46,41 +51,52 @@
     }
   });
 
+  // Helper function to build search URL
+  function buildSearchUrl(settings) {
+    const baseUrl = "https://www.linkedin.com/jobs/search/";
+    const params = new URLSearchParams({
+      keywords: settings.jobTitle,
+      location: settings.location,
+      f_AL: true, // Easy Apply only
+      sortBy: "R", // Sort by Most Recent
+    });
+
+    // Add job type filter if specified
+    if (settings.jobType && settings.jobType !== "none") {
+      params.append("f_WT", settings.jobType);
+    }
+
+    return `${baseUrl}?${params.toString()}`;
+  }
+
   // Helper function to check if on jobs page
   function isOnJobsPage() {
+    console.log("window.location.href", window.location.href);
     return window.location.href.includes("linkedin.com/jobs/search");
   }
 
   // Helper function to navigate to job search
   async function navigateToJobSearch() {
-    console.log("Current URL:", window.location.href);
-    console.log("Checking if on jobs page:", isOnJobsPage());
+    if (!window.linkedInAutoApplyAgent.settings) {
+      console.error("No settings found");
+      return false;
+    }
 
-    // Construct the LinkedIn search URL with filters
-    const baseUrl = "https://www.linkedin.com/jobs/search/?";
-    const params = new URLSearchParams({
-      keywords: window.linkedInAutoApplyAgent.settings.jobTitle,
-      location: window.linkedInAutoApplyAgent.settings.location,
-      f_WT:
-        window.linkedInAutoApplyAgent.settings.jobType === "full-time"
-          ? "1"
-          : window.linkedInAutoApplyAgent.settings.jobType === "part-time"
-          ? "2"
-          : window.linkedInAutoApplyAgent.settings.jobType === "contract"
-          ? "3"
-          : "1",
-      f_E: "4", // Mid-Senior level
-      f_LF: "f_AL", // Easy Apply
-      f_WRA: "true", // Include remote jobs
-      sortBy: "R", // Sort by most relevant
-    });
+    const searchUrl = buildSearchUrl(window.linkedInAutoApplyAgent.settings);
+    console.log("Search URL:", searchUrl);
 
-    const searchUrl = baseUrl + params.toString();
-    console.log("Target search URL:", searchUrl);
-
-    if (!isOnJobsPage() || window.location.href !== searchUrl) {
-      console.log("Redirecting to jobs search page");
-      window.location.href = searchUrl;
+    const currentParams = new URL(window.location.href).searchParams;
+    const targetParams = new URL(searchUrl).searchParams;
+    if (
+      !isOnJobsPage() ||
+      !currentParams.toString() === targetParams.toString()
+    ) {
+      console.log(
+        "!isOnJobsPage(), window.location.href !== searchUrl",
+        !isOnJobsPage(),
+        window.location.href !== searchUrl
+      );
+      // window.location.href = searchUrl;
       return true;
     }
     return false;
@@ -130,24 +146,13 @@
 
         // Check job details for skill match
         const jobTitle =
-          card.querySelector(".job-card-list__title")?.textContent?.trim() ||
-          "";
+          card
+            .querySelector(".artdeco-entity-lockup__title")
+            ?.textContent?.trim() || "";
         const jobCompany =
           card
-            .querySelector(".job-card-container__company-name")
+            .querySelector(".artdeco-entity-lockup__subtitle")
             ?.textContent?.trim() || "";
-
-        // Check if job title matches (case insensitive)
-        if (
-          !jobTitle
-            .toLowerCase()
-            .includes(
-              window.linkedInAutoApplyAgent.settings.jobTitle.toLowerCase()
-            )
-        ) {
-          console.log("Skipping job with non-matching title:", jobTitle);
-          continue;
-        }
 
         console.log("Processing Easy Apply job:", {
           title: jobTitle,
@@ -160,7 +165,7 @@
 
         // Find and click the Easy Apply button
         const easyApplyButton = document.querySelector(
-          'button[aria-label*="Easy Apply"]'
+          'button[aria-label*="Easy Apply to"]'
         );
         if (easyApplyButton) {
           console.log("Found Easy Apply button, clicking it");

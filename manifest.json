@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LinkedIn Job Apply Agent",
-  "version": "1.0",
+  "version": "0.0.14",
   "description": "Automatically applies to jobs on LinkedIn",
   "permissions": [
     "activeTab",
@@ -30,8 +30,15 @@
         "https://www.linkedin.com/jobs/*",
         "https://www.linkedin.com/jobs/search/*"
       ],
-      "js": ["content.js"],
+      "js": ["content.js", "config.js"],
+      "type": "module",
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["config.js"],
+      "matches": ["https://www.linkedin.com/*"]
     }
   ]
 }
